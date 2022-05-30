@@ -1,5 +1,150 @@
 
 
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------ START MENU.
+
+let cvt = document.getElementById('cards');
+
+let menu_container = document.getElementById('menu-container');
+menu_container.addEventListener('transitionend', (element) => {
+  menu_container.remove();
+  start_button.disabled = true;
+  console.log('menu container transitionend');
+
+  /*
+  
+  Once this is done:
+   - All the cover divs need to change their opacity to 0.
+   - 
+
+  */
+
+  cards.startTransition(); // **** make this possible.
+  // start a timer that when finished it start the cover cards.
+})
+
+let start_button = document.getElementById('start-button');
+
+
+// FIX THIS (put transition and assign position to menu_container) ***************************************
+start_button.onclick = element => {
+  menu_container.style.opacity = '0';
+  console.log('start button clicked');
+  //menu_container.remove();
+  //start_button.disabled = true;
+}
+
+
+// ------------------------------------------------------------------------ INSTRUCTIONS.
+
+const INSTRUCTIONS_DIV = document.getElementById('instructions');
+
+let instructions = {
+
+}
+
+
+// ------------------------------------------------------------------------ CARDS.
+
+const CARD_CONTENTS_STRING = '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍';
+const CARD_CONTENTS = CARD_CONTENTS_STRING.split(' ');
+const CARDS_DIV = document.getElementById('cards');
+
+const CARDS_AMOUNT = 12;
+
+let cards = {
+  covers: [],
+
+  startTransitionTimeout: null,
+  startTransitionTime: '3000', // miliseconds.
+
+  setup: function() { // here all the cards and the covers are created.
+    for (let i=0; i<CARDS_AMOUNT; i++) {
+      const CARD = document.createElement('div');
+      CARD.setAttribute('class', 'card');
+      CARD.innerHTML = CARD_CONTENTS[i];
+      CARDS_DIV.appendChild(CARD);
+
+
+      const COVER = document.createElement('div');
+      COVER.innerHTML = '✋';
+      COVER.setAttribute('class', 'card-cover');
+      // CARD.setAttribute('id', 'cover id'); ************** SET THIS ID.
+      CARD.appendChild(COVER);
+      this.covers.push(COVER);
+    }
+  },
+  startTransition: function() {
+    this.__uncoverAll();
+    //this.__startTransition2.bind(cards);
+    this.startTransitionTimeout = setTimeout(this.__startTransition2.bind(this), this.startTransitionTime);
+    console.log('********')
+  },
+  __startTransition2: function() {
+    clearTimeout(this.startTransitionTimeout);
+    console.log(this.startTransitionTime, 'the time');
+    this.__coverAll();
+    for(const COVER of this.covers) {
+      COVER.onclick = (element) => {
+        console.log('YYEEAAHHHHHHH');
+      }
+    }
+  },
+  __uncoverAll: function() {
+    for(const COVER of this.covers) {
+      COVER.style.opacity = '0';
+    }
+  },
+  __coverAll: function() {
+    for(const COVER of this.covers) {
+      COVER.style.opacity = '100%';
+    }
+  }
+}
+
+
+
+// ------------------------------------------------------------------------ HEARTS
+
+const HEARTS_DIV = document.getElementById('hearts');
+const HEARTS = {alive: '❤️', dead: '🖤'} // 🤍
+
+const HEART_AMOUNT = 5;
+
+for (let i=0; i<HEART_AMOUNT; i++) {
+  const HEART = document.createElement('div');
+  HEART.innerHTML = HEARTS.alive;
+  HEART.setAttribute('class', 'heart');
+  HEARTS_DIV.appendChild(HEART);
+}
+
+
+
+// ------------------------------------------------------------------------ FUNCTIONS
+
+
+
+cards.setup();
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
 // -------------------------------------------------------------- ALPHABET SOUP.
 
 new p5();
@@ -151,7 +296,7 @@ cards = {
   },
   coverPressed: function() {
     
-  }
+  /
 
 
     // for each card on the game, assign an onclick function.
@@ -175,7 +320,6 @@ cards = {
   }
 }
 
-
 // -------------------------------------------------------------- FUNCTIONS.
 
 
@@ -197,7 +341,7 @@ function restart() {
 }
 
 
-
+*/
 
 
 /*

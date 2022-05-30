@@ -10,25 +10,193 @@ body {
       font-family: cursive;
 }
 
-div {
+/*div {
     border-radius: 10%;
-}
+}*/
 
 div.card-ground {
     background: white;
     border: 2px solid black;
 }
 
-div.card-cover {
-    background: black;
-    transition-property: background;
+
+
+
+
+
+
+
+
+#menu-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    /*width: 100%;
+    height: 100%;*/
+    border-radius: 10px;
+
+    transition: opacity 450ms ease;
+}
+
+#menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, .6);
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    outline: indigo solid 5px;;
+}
+
+#title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: indigo;
+    width: 110%;
+    height: 100px;
+    margin-bottom: 50px;
+
+    color: white;
+    font-size: 3em;
+    border-radius: 10px;
+    border: 3px solid black;
+    outline: 0 10px 10px white;
+}
+
+#start-button {
+    width: 220px;
+    height: 40px;
+    border-radius: 20px;
+    border: 2px solid black;
+}
+
+
+/*main {
+    width: 100%;
+    height: 100%;
+    background: red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border: 2px solid white;
+}*/
+
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#game-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: 4em 6em;
+
+    background: white;
+
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+#instructions {
+    font-size: 1.5em;
+    margin-bottom: 1em;
+    /*border: 2px dotted black;*/
+}
+
+
+#cards-wrapper {
+    display: flex;
+    align-items: start;
+    /*border: 2px dotted black;
+    padding: 1em;*/
+}
+
+
+#cards {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-auto-rows: 120px;
+    grid-gap: 20px;
+}
+
+
+.card {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+
+    background: white;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.card-cover {
+    position: absolute;
+    background: darkslateblue;
+    width: 100px;
+    height: 100%;
+
+    outline: 10px solid black;
+    outline-offset: -10px;
+
+    border: 2px solid black;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    font-size: .5em;
+
+    transition-property: opacity;
     transition-duration: 400ms;
     transition-timing-function: ease;
-}   
-
-div.card-cover:is(:hover, :focus) {
-    cursor: pointer;
-    /*background: grey;*/
-    border: 2px solid black;
-    /*transform: rotateY(180deg);*/
 }
+
+.card-cover:is(:hover, :focus) {
+    cursor: pointer;
+    /*outline-offset: -10px;*/
+    /*background: grey;*/
+    /*border: 2px solid black;*/
+    transform: scale(1.1);
+}
+
+#hearts {
+    border: 2px solid black;
+    //height: max-content;
+    margin-left: 2em;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.heart {
+    /*margin-bottom: 5px;*/
+}
+
+
+
+
+
+
+
