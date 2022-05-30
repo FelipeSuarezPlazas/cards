@@ -11,6 +11,8 @@
 
 let cvt = document.getElementById('cards');
 
+let game_wrapper = document.getElementById('game-wrapper');
+
 let menu_container = document.getElementById('menu-container');
 menu_container.addEventListener('transitionend', (element) => {
   menu_container.remove();
@@ -24,6 +26,9 @@ menu_container.addEventListener('transitionend', (element) => {
    - 
 
   */
+
+  hearts.restart();
+  cards.restart();
 
   cards.startTransition(); // **** make this possible.
   // start a timer that when finished it start the cover cards.
@@ -41,6 +46,16 @@ start_button.onclick = element => {
 }
 
 
+
+let menu = {
+  restart: function() {
+    game_wrapper.appendChild(menu_container);
+    menu_container.style.opacity = '100%';
+    start_button.disabled = false;
+  }
+}
+
+
 // ------------------------------------------------------------------------ INSTRUCTIONS.
 
 const INSTRUCTIONS_DIV = document.getElementById('instructions');
@@ -52,48 +67,192 @@ let instructions = {
 
 // ------------------------------------------------------------------------ CARDS.
 
-const CARD_CONTENTS_STRING = '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍';
-const CARD_CONTENTS = CARD_CONTENTS_STRING.split(' ');
-const CARDS_DIV = document.getElementById('cards');
-
-const CARDS_AMOUNT = 12;
-
 let cards = {
+  div: document.getElementById('cards'),
+  values: '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍'.split(' '),
+  selected_values: [],
+  amount: 12,
+  limit_selectable: 2,
+  selected_counter: 0,
+
+  cards: [],
   covers: [],
+  covers_by_id: {},
+  values_by_cover_ids: {},
+  selected_cover_ids: [],
+  cards_by_cover_ids: {},
 
   startTransitionTimeout: null,
-  startTransitionTime: '3000', // miliseconds.
+  start_transition_time: '3000', // miliseconds.
+
+  wrongSelectionTimeout: null,
+  wrong_selection_time: '1000', // miliseconds.
 
   setup: function() { // here all the cards and the covers are created.
-    for (let i=0; i<CARDS_AMOUNT; i++) {
+    this.__randomTheValues();
+    for (let i=0; i<this.amount; i++) {
       const CARD = document.createElement('div');
       CARD.setAttribute('class', 'card');
-      CARD.innerHTML = CARD_CONTENTS[i];
-      CARDS_DIV.appendChild(CARD);
+
+      // I need for 0 and 1 the same value
+      // for 2 and 3. 4 and 5
+
+      //const VALUE_INDEX = ((i+10)%2 != 0) ? i : i-1;
+
+      const CARD_VALUE = this.selected_values[i];
+      CARD.innerHTML = CARD_VALUE;
+      this.div.appendChild(CARD);
 
 
       const COVER = document.createElement('div');
       COVER.innerHTML = '✋';
       COVER.setAttribute('class', 'card-cover');
+      const COVER_ID = 'card-cover'+i;
+      COVER.setAttribute('id', COVER_ID);
       // CARD.setAttribute('id', 'cover id'); ************** SET THIS ID.
       CARD.appendChild(COVER);
+
+      this.cards.push(CARD);
       this.covers.push(COVER);
+      this.covers_by_id[COVER_ID] = COVER;
+      this.values_by_cover_ids[COVER_ID] = CARD_VALUE;
+      this.cards_by_cover_ids[COVER_ID] = CARD;
     }
+  },
+  restart: function() {
+    for (const CARD of this.cards) {
+      CARD.style.background = 'white';
+    }
+
+    for (const COVER of this.covers) {
+      COVER.setAttribute('class', 'card-cover');
+    }
+  },
+  __randomTheValues: function() {
+    let values_copy = this.values.slice();
+    let selected_values = [];
+    let final_values = [];
+    let counter = 0;
+
+    // lo primero es remover 6 valores aleatoreos que se van a usar en el juego
+
+    while(counter < (this.amount/2)) {
+      const INDEX = getRandomInt(0, values_copy.length);
+      const VALUE = values_copy.splice(INDEX, 1)[0];
+      selected_values.push(VALUE);
+      counter += 1;
+    }
+
+    selected_values = selected_values.concat(selected_values);
+    // ya teniendo esos 6 valores aleatoreos, lo que debo hacer ahora es duplicarlos
+    // y organizarlos de forma aleatorea.
+
+    for (const VALUE of selected_values) {
+      console.log(VALUE, 'RANDOM VALUE');
+    }
+
+    while(selected_values.length > 0) {
+      const INDEX = getRandomInt(0, selected_values.length);
+      const VALUE = selected_values.splice(INDEX, 1)[0];
+      final_values.push(VALUE);
+    }
+
+    console.log('   ');
+
+    for (const VALUE of final_values) {
+      console.log(VALUE, 'RANDOM VALUE');
+    }
+
+    this.selected_values = final_values.slice();
   },
   startTransition: function() {
     this.__uncoverAll();
     //this.__startTransition2.bind(cards);
-    this.startTransitionTimeout = setTimeout(this.__startTransition2.bind(this), this.startTransitionTime);
+    this.startTransitionTimeout = setTimeout(this.__startTransition2.bind(this), this.start_transition_time);
     console.log('********')
   },
   __startTransition2: function() {
     clearTimeout(this.startTransitionTimeout);
-    console.log(this.startTransitionTime, 'the time');
+    console.log(this.start_transition_time, 'the time');
     this.__coverAll();
+    this.__assignClickEvents();
+  },
+  __assignClickEvents: function() {
     for(const COVER of this.covers) {
-      COVER.onclick = (element) => {
-        console.log('YYEEAAHHHHHHH');
+      /*COVER.onclick = (element) => {
+        console.log('YYEEAAHHHHHHH', element);
+
+      }*/
+      COVER.addEventListener('click', event => {
+        this.__handleCoverClick(event);
+      })
+    }
+  },
+  __handleCoverClick: function(event) {
+    console.log('cover click event');
+    this.selected_counter += 1;
+
+    if (this.selected_counter <= this.limit_selectable) {
+      console.log('YYEEAAHHHHHHH', event.currentTarget.id, this.limit_selectable);
+      const SELECTED_COVER_ID = event.currentTarget.id;
+
+      if ((this.selected_counter == this.limit_selectable) && // the second is begin selected.
+        (this.selected_cover_ids[0] == SELECTED_COVER_ID)) {
+        // he is selecting the same card.
+
+        this.selected_counter -= 1;
+        return;
+      };
+
+      const SELECTED_COVER = document.getElementById(SELECTED_COVER_ID);
+      SELECTED_COVER.style.opacity = '0';
+
+      this.selected_cover_ids.push(SELECTED_COVER_ID);
+
+      if (this.selected_cover_ids[0] == this.selected_cover_ids[1]) return;
+
+      //console.log(this.values_by_cover_ids[this.selected_cover_ids[0]],this.values_by_cover_ids[this.selected_cover_ids[1]]);
+      //console.log(this.values_by_cover_ids[this.selected_cover_ids[0]] == this.values_by_cover_ids[this.selected_cover_ids[1]]);
+      const card_value1 = this.values_by_cover_ids[this.selected_cover_ids[0]];
+      const card_value2 = this.values_by_cover_ids[this.selected_cover_ids[1]];
+
+      // if right or wrong.
+      if (this.selected_counter == this.limit_selectable) {
+        if (card_value1 == card_value2) { this.__right();
+        } else { this.__wrong(this.selected_cover_ids); }
+        this.__restartValuesAfterSelection();
       }
+    }
+  },
+  __restartValuesAfterSelection: function() {
+    this.selected_counter = 0;
+    this.selected_cover_ids = [];
+  },
+  __right: function() {
+    // their values are equal.
+    for (const COVER_ID of this.selected_cover_ids) {
+      const CARD = this.cards_by_cover_ids[COVER_ID];
+      CARD.style.background = 'blueviolet';
+
+      const COVER = this.covers_by_id[COVER_ID];
+      COVER.setAttribute('class', COVER.getAttribute('class') + ' card-cover-disabled')
+      console.log(COVER.getAttribute('class'));
+    }
+    console.log('EQUAL C:');
+  },
+  __wrong: function(WRONG_COVER_IDS) {
+    console.log('NOT EQUAL :C');
+
+    this.wrongSelectionTimeout = setTimeout(() => 
+      {this.__undoWrongSelection(WRONG_COVER_IDS)}, this.wrong_selection_time);
+
+    hearts.decrease();
+  },
+  __undoWrongSelection: function(WRONG_COVER_IDS) {
+    clearTimeout(this.wrongSelectionTimeout);
+    for (const COVER_ID of WRONG_COVER_IDS) {
+      const COVER = this.covers_by_id[COVER_ID];
+      COVER.style.opacity = '100%';
     }
   },
   __uncoverAll: function() {
@@ -105,23 +264,53 @@ let cards = {
     for(const COVER of this.covers) {
       COVER.style.opacity = '100%';
     }
-  }
+  },
 }
 
 
 
-// ------------------------------------------------------------------------ HEARTS
+// ------------------------------------------------------------------------ LIVES
 
-const HEARTS_DIV = document.getElementById('hearts');
-const HEARTS = {alive: '❤️', dead: '🖤'} // 🤍
 
-const HEART_AMOUNT = 5;
+let hearts = {
+  container: document.getElementById('hearts'),
+  states: {alive: '❤️', dead: '🖤'}, // 🤍
+  amount: 5,
+  counter: null,
+  hearts: [],
 
-for (let i=0; i<HEART_AMOUNT; i++) {
-  const HEART = document.createElement('div');
-  HEART.innerHTML = HEARTS.alive;
-  HEART.setAttribute('class', 'heart');
-  HEARTS_DIV.appendChild(HEART);
+  setup: function() {
+    this.counter = this.amount - 1;
+
+    for (let i=0; i<this.amount; i++) {
+      const HEART = document.createElement('div');
+      HEART.innerHTML = this.states.alive;
+      HEART.setAttribute('class', 'heart');
+      this.container.appendChild(HEART);
+
+      this.hearts.push(HEART);
+    }
+  },
+  restart: function() {
+    this.counter = this.amount - 1;
+
+    for (const HEART of this.hearts) {
+      HEART.innerHTML = this.states.alive;
+    }
+  },
+  decrease: function() {
+    // based on the counter change the innerHTML of the the las heart.
+
+    const HEART = this.hearts[this.counter];
+    HEART.innerHTML = this.states.dead;
+
+    this.counter -= 1;
+    if (this.counter < 0) {
+      console.log('GAME OVER');
+
+      menu.restart();
+    }
+  }
 }
 
 
@@ -130,12 +319,15 @@ for (let i=0; i<HEART_AMOUNT; i++) {
 
 
 
+hearts.setup();
 cards.setup();
 
 
 
 
-
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
 
 
