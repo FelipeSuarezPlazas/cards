@@ -9,49 +9,38 @@
 
 // ------------------------------------------------------------------------ START MENU.
 
-let cvt = document.getElementById('cards');
-
 let game_wrapper = document.getElementById('game-wrapper');
 
-let menu_container = document.getElementById('menu-container');
-menu_container.addEventListener('transitionend', (element) => {
-  menu_container.remove();
-  start_button.disabled = true;
-  console.log('menu container transitionend');
-
-  /*
-  
-  Once this is done:
-   - All the cover divs need to change their opacity to 0.
-   - 
-
-  */
-
-  hearts.restart();
-  cards.restart();
-
-  cards.startTransition(); // **** make this possible.
-  // start a timer that when finished it start the cover cards.
-})
-
-let start_button = document.getElementById('start-button');
-
-
-// FIX THIS (put transition and assign position to menu_container) ***************************************
-start_button.onclick = element => {
-  menu_container.style.opacity = '0';
-  console.log('start button clicked');
-  //menu_container.remove();
-  //start_button.disabled = true;
-}
-
-
-
 let menu = {
-  restart: function() {
-    game_wrapper.appendChild(menu_container);
-    menu_container.style.opacity = '100%';
-    start_button.disabled = false;
+  menu_container: document.getElementById('menu-container'),
+  title: document.getElementById('title'),
+  start_button: document.getElementById('start-button'),
+
+  setup: function() {
+    this.start_button.onclick = this.__handleStartButtonClick.bind(this);
+    this.menu_container.addEventListener('transitionend', this.__startGame.bind(this));
+  },
+  restart: function(msgs) {
+    this.title.innerHTML = msgs.title_msg;
+    this.start_button.innerHTML = msgs.start_button_msg;
+
+    this.menu_container.style.zIndex = 10;
+    this.menu_container.style.opacity = '1';
+    this.start_button.disabled = false;
+  },
+  __handleStartButtonClick: function() {
+    this.menu_container.style.opacity = '0';
+    this.start_button.disabled = true;
+    console.log('start button clicked');
+  },
+  __startGame: function() {
+    console.log('From menu to game...');
+
+    this.menu_container.style.zIndex = -10;
+    this.title.innerHTML = 'GAME OVER';
+    this.start_button.innerHTML = 'RESTART';
+
+    control.send(control.msgs.start_game);
   }
 }
 
@@ -61,26 +50,84 @@ let menu = {
 const INSTRUCTIONS_DIV = document.getElementById('instructions');
 
 let instructions = {
+  instructions: document.getElementById('instructions'),
+  texts: {
+    start: 'PREPARE TO MEMORISE...',
+    timer: '*',
+    selection: 'SELECT ALL THE PAIRS',
+  },
 
+  start_time: 3000,
+  timer_time: 5000,
+  timer_time_amount: 20,
+
+  timeout: null,
+  interval: null,
+  interval_counter: 0,
+
+  start: function() {
+    this.instructions.innerHTML = this.texts.start;
+    this.timeout = setTimeout(this.__start2.bind(this), this.start_time);
+  },
+  __start2: function() {
+    clearTimeout(this.timeout);
+    let text = '';
+    for (var i = 0; i < this.timer_time_amount*2; i++) {
+      text += this.texts.timer;
+    }
+    this.instructions.innerHTML = text;
+
+    control.send(control.msgs.uncover_cards);
+  },
+  startTimer: function() {
+    console.log('HELO??');
+    this.interval_counter = 0;
+    this.interval = setInterval(this.__changeTimerText.bind(this), 
+      (this.timer_time/this.timer_time_amount));
+
+  },
+  __changeTimerText: function() {
+    console.log('SHOW ME SOMETHING...')
+    let text = this.instructions.innerHTML;
+    text = text.slice(0, text.length-2);
+    this.instructions.innerHTML = text;
+
+    this.interval_counter += 1;
+
+    if (this.interval_counter == this.timer_time_amount) {
+      // cover the cards again.
+      clearInterval(this.interval);
+      this.__selection();
+      control.send(control.msgs.cover_cards);
+    }
+  },
+  __selection: function() {
+    this.instructions.innerHTML = this.texts.selection;
+  }
 }
 
 
 // ------------------------------------------------------------------------ CARDS.
 
 let cards = {
-  div: document.getElementById('cards'),
+  container: document.getElementById('cards'),
   values: '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍'.split(' '),
   selected_values: [],
+  colors: ['aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet', 'aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet'],
   amount: 12,
   limit_selectable: 2,
   selected_counter: 0,
 
   cards: [],
+  card_contents: [],
   covers: [],
   covers_by_id: {},
+  cards_by_cover_ids: {},
+
   values_by_cover_ids: {},
   selected_cover_ids: [],
-  cards_by_cover_ids: {},
+
+  already_right_cover_ids: [],
 
   startTransitionTimeout: null,
   start_transition_time: '3000', // miliseconds.
@@ -88,44 +135,68 @@ let cards = {
   wrongSelectionTimeout: null,
   wrong_selection_time: '1000', // miliseconds.
 
+  disabled: false,
+
   setup: function() { // here all the cards and the covers are created.
-    this.__randomTheValues();
     for (let i=0; i<this.amount; i++) {
       const CARD = document.createElement('div');
       CARD.setAttribute('class', 'card');
+      this.container.appendChild(CARD);
 
-      // I need for 0 and 1 the same value
-      // for 2 and 3. 4 and 5
-
-      //const VALUE_INDEX = ((i+10)%2 != 0) ? i : i-1;
-
-      const CARD_VALUE = this.selected_values[i];
-      CARD.innerHTML = CARD_VALUE;
-      this.div.appendChild(CARD);
-
+      const CARD_CONTENT = document.createTextNode('1');
+      CARD.appendChild(CARD_CONTENT);
+      this.card_contents.push(CARD_CONTENT);
 
       const COVER = document.createElement('div');
       COVER.innerHTML = '✋';
       COVER.setAttribute('class', 'card-cover');
+
       const COVER_ID = 'card-cover'+i;
       COVER.setAttribute('id', COVER_ID);
-      // CARD.setAttribute('id', 'cover id'); ************** SET THIS ID.
       CARD.appendChild(COVER);
 
       this.cards.push(CARD);
       this.covers.push(COVER);
       this.covers_by_id[COVER_ID] = COVER;
-      this.values_by_cover_ids[COVER_ID] = CARD_VALUE;
       this.cards_by_cover_ids[COVER_ID] = CARD;
     }
   },
   restart: function() {
-    for (const CARD of this.cards) {
+    this.disabled = false;
+
+    console.log('RESTART THE VALUES OF THE SETUP');
+    for (const COVER_ID of this.already_right_cover_ids) {
+      const CARD = this.cards_by_cover_ids[COVER_ID];
       CARD.style.background = 'white';
     }
 
     for (const COVER of this.covers) {
       COVER.setAttribute('class', 'card-cover');
+      console.log(COVER.getAttribute('class'), 'cover classes');
+    }
+    
+
+    this.values_by_cover_ids = {};
+    this.selected_cover_ids = [];
+    this.already_right_cover_ids = [];
+
+
+
+    this.__randomTheValues();
+
+    // volver a asignar valores aleatoreos a todos los contenidos de las cartas.
+    for (var i = 0; i < this.cards.length; i++) {
+      const CARD = this.cards[i];
+      const COVER = this.covers[i];
+      const CARD_VALUE = this.selected_values[i];
+      
+      const CARD_CONTENT = this.card_contents[i];
+      CARD_CONTENT.textContent = CARD_VALUE;
+      console.log(CARD_VALUE, 'VALUE OF THE CARD');
+
+      
+      this.values_by_cover_ids[COVER.getAttribute('id')] = CARD_VALUE;
+      
     }
   },
   __randomTheValues: function() {
@@ -165,7 +236,7 @@ let cards = {
 
     this.selected_values = final_values.slice();
   },
-  startTransition: function() {
+  /*startTransition: function() {
     this.__uncoverAll();
     //this.__startTransition2.bind(cards);
     this.startTransitionTimeout = setTimeout(this.__startTransition2.bind(this), this.start_transition_time);
@@ -176,84 +247,98 @@ let cards = {
     console.log(this.start_transition_time, 'the time');
     this.__coverAll();
     this.__assignClickEvents();
-  },
-  __assignClickEvents: function() {
-    for(const COVER of this.covers) {
-      /*COVER.onclick = (element) => {
-        console.log('YYEEAAHHHHHHH', element);
-
-      }*/
-      COVER.addEventListener('click', event => {
-        this.__handleCoverClick(event);
-      })
-    }
-  },
+  },*/
   __handleCoverClick: function(event) {
-    console.log('cover click event');
-    this.selected_counter += 1;
+    if (this.disabled) return;
+    console.log('COVER CLICKED');
+    const SELECTED_COVER_ID = event.currentTarget.id;
+    
+    // --- the user is selecting an already right card.
+    if (this.already_right_cover_ids.includes(SELECTED_COVER_ID)) {
+      console.log('ALREADY RIGHT COVER');
+      return;
+    }
 
-    if (this.selected_counter <= this.limit_selectable) {
-      console.log('YYEEAAHHHHHHH', event.currentTarget.id, this.limit_selectable);
-      const SELECTED_COVER_ID = event.currentTarget.id;
+    // ----- If the user is selecting the same card again. (doesnt matter if selected ids is empty)
+    if (this.selected_cover_ids[0] == SELECTED_COVER_ID) {
+      console.log('***SELECTING THE SAME CARD***');
+      return;
+    }
 
-      if ((this.selected_counter == this.limit_selectable) && // the second is begin selected.
-        (this.selected_cover_ids[0] == SELECTED_COVER_ID)) {
-        // he is selecting the same card.
 
-        this.selected_counter -= 1;
-        return;
-      };
 
+    
+    if (this.selected_cover_ids.length < this.limit_selectable) {
+      // ----- This cover must be in the list of selected ones (2 cards*)
+      this.selected_cover_ids.push(SELECTED_COVER_ID);
+
+      // ----- The cover.
       const SELECTED_COVER = document.getElementById(SELECTED_COVER_ID);
       SELECTED_COVER.style.opacity = '0';
 
-      this.selected_cover_ids.push(SELECTED_COVER_ID);
+      console.log('VALUE SELECTED: ', 
+        this.values_by_cover_ids[this.selected_cover_ids[this.selected_cover_ids.length-1]],
+        this.values_by_cover_ids[SELECTED_COVER_ID]);
 
-      if (this.selected_cover_ids[0] == this.selected_cover_ids[1]) return;
-
-      //console.log(this.values_by_cover_ids[this.selected_cover_ids[0]],this.values_by_cover_ids[this.selected_cover_ids[1]]);
-      //console.log(this.values_by_cover_ids[this.selected_cover_ids[0]] == this.values_by_cover_ids[this.selected_cover_ids[1]]);
-      const card_value1 = this.values_by_cover_ids[this.selected_cover_ids[0]];
-      const card_value2 = this.values_by_cover_ids[this.selected_cover_ids[1]];
-
-      // if right or wrong.
-      if (this.selected_counter == this.limit_selectable) {
-        if (card_value1 == card_value2) { this.__right();
-        } else { this.__wrong(this.selected_cover_ids); }
-        this.__restartValuesAfterSelection();
+      // ----- The second value.
+      if (this.selected_cover_ids.length == 2) {
+        this.__calculateScore();
       }
     }
   },
-  __restartValuesAfterSelection: function() {
-    this.selected_counter = 0;
-    this.selected_cover_ids = [];
+  __calculateScore: function() {
+    // ----- Compare the two selected card values.
+    const card_value1 = this.values_by_cover_ids[this.selected_cover_ids[0]];
+    const card_value2 = this.values_by_cover_ids[this.selected_cover_ids[1]];
+
+    console.log(card_value1 + ' == ' + card_value2);
+
+    if (card_value1 == card_value2) {
+      console.log('GOOD');
+      this.__right();
+    } else { 
+      console.log('BAD');
+      this.__wrong(); 
+    }
+
+    // aqui es donde calculo si se ha perdido o se ha ganado
+    // lo primero es tomar el valor de hearts.
   },
   __right: function() {
-    // their values are equal.
+    const COLOR = this.colors[this.already_right_cover_ids.length/2];
+
     for (const COVER_ID of this.selected_cover_ids) {
       const CARD = this.cards_by_cover_ids[COVER_ID];
-      CARD.style.background = 'blueviolet';
+      CARD.style.background = COLOR;
 
       const COVER = this.covers_by_id[COVER_ID];
-      COVER.setAttribute('class', COVER.getAttribute('class') + ' card-cover-disabled')
+      COVER.setAttribute('class', COVER.getAttribute('class') + ' card-cover-disabled');
+
+      this.already_right_cover_ids.push(COVER_ID)
       console.log(COVER.getAttribute('class'));
     }
-    console.log('EQUAL C:');
-  },
-  __wrong: function(WRONG_COVER_IDS) {
-    console.log('NOT EQUAL :C');
 
-    this.wrongSelectionTimeout = setTimeout(() => 
-      {this.__undoWrongSelection(WRONG_COVER_IDS)}, this.wrong_selection_time);
+    if (this.already_right_cover_ids.length == this.amount) {
+      control.send(control.msgs.win);
+    }
 
-    hearts.decrease();
+    this.__restartValuesAfterSelection();
   },
-  __undoWrongSelection: function(WRONG_COVER_IDS) {
+  __wrong: function() {
+    control.send(control.msgs.wrong_selection);
+    this.wrongSelectionTimeout = setTimeout(this.__undoWrongSelection.bind(this), this.wrong_selection_time);
+  },
+  __undoWrongSelection: function() {
     clearTimeout(this.wrongSelectionTimeout);
-    for (const COVER_ID of WRONG_COVER_IDS) {
+    console.log(this.selected_cover_ids);
+    for (const COVER_ID of this.selected_cover_ids) {
       const COVER = this.covers_by_id[COVER_ID];
       COVER.style.opacity = '100%';
     }
+    this.__restartValuesAfterSelection();
+  },
+  __restartValuesAfterSelection: function() {
+    this.selected_cover_ids = [];
   },
   __uncoverAll: function() {
     for(const COVER of this.covers) {
@@ -261,9 +346,21 @@ let cards = {
     }
   },
   __coverAll: function() {
+    console.log('COVER ALL');
     for(const COVER of this.covers) {
-      COVER.style.opacity = '100%';
+      console.log('THE COVER TO COVER AGAIN', COVER);
+      console.log(COVER.getAttribute('class'));
+      COVER.style.opacity = '1';
     }
+  },
+  __assignClickEvents: function() {
+    for(const COVER of this.covers) {
+      COVER.addEventListener('click', this.__handleCoverClick.bind(this));
+      console.log('assing the click events to the covers')
+    }
+  },
+  disable: function() {
+    this.disabled = true;
   },
 }
 
@@ -306,21 +403,88 @@ let hearts = {
 
     this.counter -= 1;
     if (this.counter < 0) {
-      console.log('GAME OVER');
-
-      menu.restart();
+      control.send(control.msgs.game_over);
     }
   }
 }
 
+
+// ------------------------------------------------------------------------ CONTROL
+
+
+// this is the panel that manages the comunication between all the components.
+// they dont comunicate between each other by their own.
+
+// so, this basically have the commands that can be sent, and this is going to 
+// know what to do.
+let control = {
+  msgs: {
+    setup: 'setup',
+    start_game: 'start game',
+    uncover_cards: 'uncover cards',
+    cover_cards: 'cover cards',
+    wrong_selection: 'wrong selection',
+    game_over: 'game_over',
+    win: 'win',
+  },
+  timeout: null,
+
+  send: function(msg, vars) {
+    // here I manage all the possible messages.
+    // and the components only send mesages estipulated by me.
+    if (msg == this.msgs.setup) { // first automatic message.
+      menu.setup();
+      hearts.setup();
+      cards.setup();
+
+    } else if (msg == this.msgs.start_game) { // menu (start button).
+      hearts.restart();
+      cards.restart();
+      instructions.start();
+      //cards.startTransition(); // **** make this possible.
+      // start a timer that when finished it start the cover cards.
+
+    } else if (msg == this.msgs.uncover_cards) { // menu (start button).
+      this.timeout = setTimeout(() => {
+        cards.__uncoverAll();
+        instructions.startTimer();
+      }, 1000);
+
+    } else if (msg == this.msgs.cover_cards) { // menu (start button).
+      cards.__coverAll();
+      cards.__assignClickEvents();
+
+    } else if (msg == this.msgs.wrong_selection) { // cards.
+      hearts.decrease();
+
+    } else if (msg == this.msgs.game_over) { // cards.
+      console.log('GAME OVER');
+      cards.disable();
+
+      this.timeout = setTimeout(() => {
+        cards.__coverAll();
+        menu.restart( {title_msg: 'GAME OVER', start_button_msg: 'TRY AGAIN'} );
+      }, 1400);
+
+
+    } else if (msg == this.msgs.win) { // cards.
+      console.log('YOU WIN');
+
+      this.timeout = setTimeout(() => {
+        cards.__coverAll();
+        menu.restart( {title_msg: 'YOU WIN', start_button_msg: 'NEXT LEVEL'} );
+      }, 1400);
+    }
+  }
+}
+
+control.send(control.msgs.setup);
 
 
 // ------------------------------------------------------------------------ FUNCTIONS
 
 
 
-hearts.setup();
-cards.setup();
 
 
 
