@@ -13,11 +13,10 @@ mejorar la interfaz del menu.
 
 
 
+let game_wrapper = document.getElementById('game-wrapper');
 
 
 // ------------------------------------------------------------------------ START MENU.
-
-let game_wrapper = document.getElementById('game-wrapper');
 
 let menu = {
   menu_container: document.getElementById('menu-container'),
@@ -59,8 +58,6 @@ let menu = {
 
 
 // ------------------------------------------------------------------------ INSTRUCTIONS.
-
-const INSTRUCTIONS_DIV = document.getElementById('instructions');
 
 let instructions = {
   instructions: document.getElementById('instructions'),
@@ -126,7 +123,8 @@ let cards = {
   container: document.getElementById('cards'),
   values: '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍'.split(' '),
   selected_values: [],
-  colors: ['aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet', 'aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet'],
+  //colors: ['aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet', 'aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet'],
+  colors: ['#ff956d', '#d7ff6d', '#956dff', '#6dd7ff', '#6dff95', '#ff8be0'],
   amount: 12,
   limit_selectable: 2,
   selected_counter: 0,
@@ -329,7 +327,7 @@ let cards = {
     }
 
     if (this.already_right_cover_ids.length == this.amount) {
-      control.send(control.finish());
+      control.finish();
     }
 
     this.__restartValuesAfterSelection();
@@ -389,9 +387,7 @@ let cards = {
 }
 
 
-
 // ------------------------------------------------------------------------ LIVES
-
 
 let hearts = {
   container: document.getElementById('hearts'),
@@ -440,11 +436,6 @@ let hearts = {
 // ------------------------------------------------------------------------ CONTROL
 
 
-// this is the panel that manages the comunication between all the components.
-// they dont comunicate between each other by their own.
-
-// so, this basically have the commands that can be sent, and this is going to 
-// know what to do.
 let control = {
   timeout: null,
 

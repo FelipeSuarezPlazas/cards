@@ -86,11 +86,11 @@ body {
     font-family: rubik-normal;
     font-size: 16px;
     background: #505050;
-    color: #ffc83d;
+    color: #e2bf1e;
     width: 220px;
     height: 40px;
     border-radius: 20px;
-    border: 2px solid black;
+    /*border: 2px solid #606060;*/
     outline: 0 solid blueviolet;
     outline-offset: 0;
     text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
