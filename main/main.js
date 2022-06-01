@@ -2,6 +2,14 @@
 
 
 
+/*
+
+quitar el handle click a los covers cuando han perdido.
+hacer la animacion de los corazones al fallar.
+mejorar la interfaz del menu.
+
+*/
+
 
 
 
@@ -40,7 +48,7 @@ let menu = {
     this.title.innerHTML = 'GAME OVER';
     this.start_button.innerHTML = 'RESTART';
 
-    control.send(control.msgs.start_game);
+    control.send(control.go.start_game);
   }
 }
 
@@ -52,7 +60,7 @@ const INSTRUCTIONS_DIV = document.getElementById('instructions');
 let instructions = {
   instructions: document.getElementById('instructions'),
   texts: {
-    start: 'PREPARE TO MEMORISE...',
+    start: 'THE CARDS WILL SHOW UP.',
     timer: '*',
     selection: 'SELECT ALL THE PAIRS',
   },
@@ -77,7 +85,7 @@ let instructions = {
     }
     this.instructions.innerHTML = text;
 
-    control.send(control.msgs.uncover_cards);
+    control.send(control.go.uncover_cards);
   },
   startTimer: function() {
     console.log('HELO??');
@@ -98,7 +106,7 @@ let instructions = {
       // cover the cards again.
       clearInterval(this.interval);
       this.__selection();
-      control.send(control.msgs.cover_cards);
+      control.send(control.go.cover_cards);
     }
   },
   __selection: function() {
@@ -117,6 +125,8 @@ let cards = {
   amount: 12,
   limit_selectable: 2,
   selected_counter: 0,
+  hover_class: 'card-cover-hover',
+  wrong_animation_class: 'card-wrong-animation',
 
   cards: [],
   card_contents: [],
@@ -133,15 +143,19 @@ let cards = {
   start_transition_time: '3000', // miliseconds.
 
   wrongSelectionTimeout: null,
-  wrong_selection_time: '1000', // miliseconds.
+  wrong_selection_time: '400', // miliseconds.
 
   disabled: false,
 
   setup: function() { // here all the cards and the covers are created.
     for (let i=0; i<this.amount; i++) {
+      const WRAPPER = document.createElement('div');
+      WRAPPER.setAttribute('class', 'wrapper');
+      this.container.appendChild(WRAPPER);
+
       const CARD = document.createElement('div');
       CARD.setAttribute('class', 'card');
-      this.container.appendChild(CARD);
+      WRAPPER.appendChild(CARD);
 
       const CARD_CONTENT = document.createTextNode('1');
       CARD.appendChild(CARD_CONTENT);
@@ -153,7 +167,7 @@ let cards = {
 
       const COVER_ID = 'card-cover'+i;
       COVER.setAttribute('id', COVER_ID);
-      CARD.appendChild(COVER);
+      WRAPPER.appendChild(COVER);
 
       this.cards.push(CARD);
       this.covers.push(COVER);
@@ -236,35 +250,28 @@ let cards = {
 
     this.selected_values = final_values.slice();
   },
-  /*startTransition: function() {
-    this.__uncoverAll();
-    //this.__startTransition2.bind(cards);
-    this.startTransitionTimeout = setTimeout(this.__startTransition2.bind(this), this.start_transition_time);
-    console.log('********')
-  },
-  __startTransition2: function() {
-    clearTimeout(this.startTransitionTimeout);
-    console.log(this.start_transition_time, 'the time');
-    this.__coverAll();
-    this.__assignClickEvents();
-  },*/
-  __handleCoverClick: function(event) {
-    if (this.disabled) return;
-    console.log('COVER CLICKED');
-    const SELECTED_COVER_ID = event.currentTarget.id;
+  __HandleClickAllowed: function(COVER_ID) {
+    if (this.disabled) return false;
+
+    if (!document.getElementById(COVER_ID).classList.contains(this.hover_class)) return false;
     
     // --- the user is selecting an already right card.
-    if (this.already_right_cover_ids.includes(SELECTED_COVER_ID)) {
+    if (this.already_right_cover_ids.includes(COVER_ID)) {
       console.log('ALREADY RIGHT COVER');
-      return;
+      return false;
     }
 
     // ----- If the user is selecting the same card again. (doesnt matter if selected ids is empty)
-    if (this.selected_cover_ids[0] == SELECTED_COVER_ID) {
+    if (this.selected_cover_ids[0] == COVER_ID) {
       console.log('***SELECTING THE SAME CARD***');
-      return;
+      return false;
     }
 
+    return true;
+  },
+  __handleCoverClick: function(event) {
+    const SELECTED_COVER_ID = event.currentTarget.id;
+    if (!this.__HandleClickAllowed(SELECTED_COVER_ID)) return;
 
 
     
@@ -282,6 +289,7 @@ let cards = {
 
       // ----- The second value.
       if (this.selected_cover_ids.length == 2) {
+        this.__toggleHoverClass();
         this.__calculateScore();
       }
     }
@@ -319,26 +327,39 @@ let cards = {
     }
 
     if (this.already_right_cover_ids.length == this.amount) {
-      control.send(control.msgs.win);
+      control.send(control.go.win);
     }
 
     this.__restartValuesAfterSelection();
   },
   __wrong: function() {
-    control.send(control.msgs.wrong_selection);
-    this.wrongSelectionTimeout = setTimeout(this.__undoWrongSelection.bind(this), this.wrong_selection_time);
-  },
-  __undoWrongSelection: function() {
-    clearTimeout(this.wrongSelectionTimeout);
-    console.log(this.selected_cover_ids);
-    for (const COVER_ID of this.selected_cover_ids) {
-      const COVER = this.covers_by_id[COVER_ID];
-      COVER.style.opacity = '100%';
-    }
-    this.__restartValuesAfterSelection();
+    let wrong_animation_done = false;
+    this.wrongSelectionTimeout = setTimeout(() => {
+      clearTimeout(this.wrongSelectionTimeout);
+      for (const COVER_ID of this.selected_cover_ids) {
+        const CARD = this.cards_by_cover_ids[COVER_ID];
+        CARD.classList.add(this.wrong_animation_class);
+        CARD.addEventListener('animationend', () => {
+          CARD.classList.remove(this.wrong_animation_class);
+
+
+          if (wrong_animation_done) { return;
+          } else { wrong_animation_done = true; }
+
+          for (const COVER_ID of this.selected_cover_ids) {
+            const COVER = this.covers_by_id[COVER_ID];
+            COVER.style.opacity = '100%';
+          }
+
+          this.__restartValuesAfterSelection();
+          control.send(control.go.wrong_selection);
+        })
+      }
+    }, this.wrong_selection_time);
   },
   __restartValuesAfterSelection: function() {
     this.selected_cover_ids = [];
+    this.__toggleHoverClass();
   },
   __uncoverAll: function() {
     for(const COVER of this.covers) {
@@ -359,6 +380,16 @@ let cards = {
       console.log('assing the click events to the covers')
     }
   },
+  enable: function() {
+    this.__assignClickEvents();
+    this.__toggleHoverClass();
+
+  },
+  __toggleHoverClass: function() {
+    for (const COVER of this.covers) {
+      COVER.classList.toggle(this.hover_class);
+    }
+  },
   disable: function() {
     this.disabled = true;
   },
@@ -371,17 +402,18 @@ let cards = {
 
 let hearts = {
   container: document.getElementById('hearts'),
-  states: {alive: '❤️', dead: '🖤'}, // 🤍
+  text: '❤️',
   amount: 5,
   counter: null,
   hearts: [],
+  decrease_animation_class: 'heart-decrease-animation',
 
   setup: function() {
     this.counter = this.amount - 1;
 
     for (let i=0; i<this.amount; i++) {
       const HEART = document.createElement('div');
-      HEART.innerHTML = this.states.alive;
+      HEART.innerHTML = this.text;
       HEART.setAttribute('class', 'heart');
       this.container.appendChild(HEART);
 
@@ -392,18 +424,25 @@ let hearts = {
     this.counter = this.amount - 1;
 
     for (const HEART of this.hearts) {
-      HEART.innerHTML = this.states.alive;
+      HEART.style.opacity = 1;
     }
   },
   decrease: function() {
     // based on the counter change the innerHTML of the the las heart.
 
     const HEART = this.hearts[this.counter];
-    HEART.innerHTML = this.states.dead;
+    //(HEART.innerHTML = this.states.dead;
+
+    HEART.classList.toggle(this.decrease_animation_class);
+    HEART.addEventListener('animationend', () => {
+      HEART.style.opacity = 0;
+
+      HEART.classList.toggle(this.decrease_animation_class);
+    })
 
     this.counter -= 1;
     if (this.counter < 0) {
-      control.send(control.msgs.game_over);
+      control.send(control.go.game_over);
     }
   }
 }
@@ -418,7 +457,7 @@ let hearts = {
 // so, this basically have the commands that can be sent, and this is going to 
 // know what to do.
 let control = {
-  msgs: {
+  go: {
     setup: 'setup',
     start_game: 'start game',
     uncover_cards: 'uncover cards',
@@ -432,32 +471,32 @@ let control = {
   send: function(msg, vars) {
     // here I manage all the possible messages.
     // and the components only send mesages estipulated by me.
-    if (msg == this.msgs.setup) { // first automatic message.
+    if (msg == this.go.setup) { // first automatic message.
       menu.setup();
       hearts.setup();
       cards.setup();
 
-    } else if (msg == this.msgs.start_game) { // menu (start button).
+    } else if (msg == this.go.start_game) { // menu (start button).
       hearts.restart();
       cards.restart();
       instructions.start();
       //cards.startTransition(); // **** make this possible.
       // start a timer that when finished it start the cover cards.
 
-    } else if (msg == this.msgs.uncover_cards) { // menu (start button).
+    } else if (msg == this.go.uncover_cards) { // menu (start button).
       this.timeout = setTimeout(() => {
         cards.__uncoverAll();
         instructions.startTimer();
       }, 1000);
 
-    } else if (msg == this.msgs.cover_cards) { // menu (start button).
+    } else if (msg == this.go.cover_cards) { // menu (start button).
       cards.__coverAll();
-      cards.__assignClickEvents();
+      cards.enable();
 
-    } else if (msg == this.msgs.wrong_selection) { // cards.
+    } else if (msg == this.go.wrong_selection) { // cards.
       hearts.decrease();
 
-    } else if (msg == this.msgs.game_over) { // cards.
+    } else if (msg == this.go.game_over) { // cards.
       console.log('GAME OVER');
       cards.disable();
 
@@ -466,8 +505,7 @@ let control = {
         menu.restart( {title_msg: 'GAME OVER', start_button_msg: 'TRY AGAIN'} );
       }, 1400);
 
-
-    } else if (msg == this.msgs.win) { // cards.
+    } else if (msg == this.go.win) { // cards.
       console.log('YOU WIN');
 
       this.timeout = setTimeout(() => {
@@ -478,7 +516,7 @@ let control = {
   }
 }
 
-control.send(control.msgs.setup);
+control.send(control.go.setup);
 
 
 // ------------------------------------------------------------------------ FUNCTIONS

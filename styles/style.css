@@ -1,29 +1,37 @@
 
 
-* {
-    box-sizing: content-box;
+
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+@font-face {
+    font-family: rubik-black;
+    src: url(../fonts/Rubik-BlackItalic.ttf);
+}
+
+@font-face {
+    font-family: rubik-normal;
+    src: url(../fonts/Rubik-Bold.ttf);
+}
+
+@font-face {
+    font-family: rubik-lighter;
+    src: url(../fonts/Rubik-light.ttf);
 }
 
 body {
       padding: 0;
       margin: 0;
-      font-family: cursive;
+      font-family: rubik, 'Roboto Condensed', cursive, sans-serif;*/
+      /*font-family: 'Muli', sans-serif;
+      font-weight: 400;*/
+      /*font-family: cursive;*/
 }
-
-/*div {
-    border-radius: 10%;
-}*/
-
-div.card-ground {
-    background: white;
-    border: 2px solid black;
-}
-
-
-
-
-
-
 
 
 
@@ -43,36 +51,73 @@ div.card-ground {
 #menu {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
-    background: rgba(0, 0, 0, .6);
+    background: rgb(3 3 3);
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    outline: indigo solid 5px;;
+    /*outline: indigo solid 5px;;*/
 }
 
 #title {
+    font-family: rubik-black;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: indigo;
+    /*background: indigo;*/
+    background: white;/* #333;*/
     width: 110%;
-    height: 100px;
-    margin-bottom: 50px;
+    height: 1.2em;
+    margin-bottom: 40px;
 
-    color: white;
-    font-size: 3em;
-    border-radius: 10px;
-    border: 3px solid black;
-    outline: 0 10px 10px white;
+    /*border-radius: 50px;*/
+    /*border: 5px solid yellow;*/
+
+    color: blueviolet;
+    font-size: 4em;
+    font-weight: black;
+    /*border-radius: 10px;*/
+    /*border: 3px solid black;*/
+    /*outline: 0 10px 10px white;*/
 }
 
 #start-button {
+    font-family: rubik-normal;
+    font-size: 16px;
+    background: #505050;
+    color: #ffc83d;
     width: 220px;
     height: 40px;
     border-radius: 20px;
     border: 2px solid black;
+    outline: 0 solid blueviolet;
+    outline-offset: 0;
+    text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    margin-bottom: 70px;
+}
+
+#start-button:hover {
+    cursor: pointer;
+    outline: 2px solid blueviolet;
+    outline-offset: 4px;
+}
+
+#steps {
+    font-family: rubik-lighter;
+    color: white;
+    text-align: center;
+    list-style-position: inside;
+    padding: 0;
+    margin: 0;
+}
+
+#steps li {
+    margin-bottom: 1em;
+}
+
+#steps:nth-child(3) {
+    margin-bottom: 70px;
 }
 
 
@@ -109,13 +154,14 @@ div.card-ground {
 
     padding: 4em 6em;
 
-    background: white;
+    background: black;
 
     border: 2px solid black;
     border-radius: 10px;
 }
 
 #instructions {
+    color: #f2f2f2;
     font-size: 1.5em;
     margin-bottom: 1em;
     /*border: 2px dotted black;*/
@@ -125,6 +171,7 @@ div.card-ground {
 #cards-wrapper {
     display: flex;
     align-items: start;
+    font-weight: 900px;
     /*border: 2px dotted black;
     padding: 1em;*/
 }
@@ -138,6 +185,11 @@ div.card-ground {
 }
 
 
+.wrapper {
+    position: relative;
+}
+
+
 .card {
     position: relative;
     display: flex;
@@ -145,43 +197,72 @@ div.card-ground {
     align-items: center;
     font-size: 3em;
 
-    background: white;
-    border: 2px solid black;
+    height: 100%;
+
+    background: #f2f2f2;
+    border: 2px solid white;
     border-radius: 10px;
 
     transition: background 400ms ease;
 }
 
+.card-wrong-animation {
+    animation: wrong-animation 200ms 2 ease-out;
+}
+
+@keyframes wrong-animation {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    25% {
+        transform: rotateZ(-8deg);
+    }
+    50% {
+        transform: rotateZ(0deg);
+    }
+    75% {
+        transform: rotateZ(8deg);
+    }
+    100% {
+        transform: rotateZ(0deg);
+    }
+}
+
 .card-cover {
     position: absolute;
-    background: darkslateblue;
-    width: 100px;
-    height: 100%;
-
-    outline: 10px solid black;
-    outline-offset: -10px;
+    background: #505050;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    /*width: 100%;
+    height: 100%;*/
 
     border: 2px solid black;
     border-radius: 10px;
+
+    outline: 2px solid black;
+    outline-offset: -2px;
 
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    font-size: .5em;
+    font-size: 1.5em;
 
-    transition-property: background opacity;
+    transition-property: opacity;
     transition-duration: 400ms;
     transition-timing-function: ease;
 }
 
-.card-cover:is(:hover, :focus) {
+.card-cover-hover:is(:hover, :focus) {
     cursor: pointer;
-    /*outline-offset: -10px;*/
-    /*background: grey;*/
+    outline-color: blueviolet;
+    outline-offset: 4px;
+    /*background: #333;*/
     /*border: 2px solid black;*/
-    transform: scale(1.1);
+    /*transform: scale(1.1);*/
 }
 
 .card-cover-disabled:is(:hover, :focus) {
@@ -189,15 +270,40 @@ div.card-ground {
 }
 
 #hearts {
-    border: 2px solid black;
-    //height: max-content;
+    border: 2px solid #bbb;
+    height: max-content;
     margin-left: 2em;
     padding: 5px;
     border-radius: 10px;
+    position: relative;
 }
 
 .heart {
+    position: relative;
     /*margin-bottom: 5px;*/
+}
+
+.heart-decrease-animation {
+    animation: decrease-animation 600ms ease forwards;
+}
+
+@keyframes decrease-animation {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    50% {
+        opacity: 1;
+        /*transform: translateX(25px);*/
+    }
+    80% {
+        opacity: 0.3;
+        /*transform: translateX(25px);*/
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
 }
 
 
