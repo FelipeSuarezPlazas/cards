@@ -9,31 +9,32 @@
 </head>
 
 <body>
-  <div id="game-container">
-    <div id="game-wrapper">
-      <div id="instructions">PREPARE. LOOK CAREFULLY.</div>
-      <div id="cards-wrapper">
-        <div id="cards"></div>
-        <div id="hearts"></div>
-      </div>
+  <div id="game">
 
+    <!-- IN GAME --> <!-- This takes all the space of #game -->
+    <div id="instructions">PREPARE. LOOK CAREFULLY.</div>
+    <div id="cards-wrapper">
 
-      <div id="menu-container">
-        <div id="menu">
-          <!-- here goes the title of the  -->
-          <div id="title">MEMORISE</div>
-          <button id="start-button">START</button>
-          <ol id="steps">
-            <li>Cards will uncover.</li>
-            <li>You have 5 seconds to memorise.</li>
-            <li>Select the pairs.</li>
-          </ol>
-          <!-- button pressed menu-container transition to opaque, and then must be repositioned -->
-          <!-- the button must be disabled -->
-          <!-- and the game must start -->
-        </div>
-      </div>
+      <div id="cards"></div>
+      <div id="hearts"></div>
+
     </div>
+    <!-- --------- -->
+
+
+    <!-- START MENU --> <!-- The position of this is absolute and is on top of IN GAME -->
+    <div id="menu">
+
+      <div id="title">MEMORISE</div>                <!-- TITLE -->
+      <button id="start-button">START</button>      <!-- START BUTTON -->
+      <ol id="steps">                               <!-- STEPS -->
+        <li>Cards will uncover.</li>
+        <li>You have 5 seconds to memorise.</li>
+        <li>Select the pairs.</li>
+      </ol>
+
+    </div>
+    <!-- --------- -->
   </div>
 
 

@@ -2,15 +2,6 @@
 
 
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
-
-
 @font-face {
     font-family: rubik-black;
     src: url(../fonts/Rubik-BlackItalic.ttf);
@@ -26,29 +17,59 @@
     src: url(../fonts/Rubik-light.ttf);
 }
 
-#menu-container {
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+
+
+body {
+    display: grid;
+    place-items: center;
+    background: white;
+
+    height: 100vh;
+}
+
+
+#game {
+    position: relative;
+
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: black;
+    padding: 4em 6em;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+
+#menu {
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+
+    background: rgb(3 3 3);
     /*width: 100%;
     height: 100%;*/
     border-radius: 10px;
 
     transition: opacity 700ms ease;
-}
-
-#menu {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
-    background: rgb(3 3 3);
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-    /*outline: indigo solid 5px;;*/
 }
 
 #title {
@@ -111,45 +132,6 @@
     margin-bottom: 70px;
 }
 
-
-/*main {
-    width: 100%;
-    height: 100%;
-    background: red;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    border: 2px solid white;
-}*/
-
-#game-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-#game-wrapper {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    padding: 4em 6em;
-
-    background: black;
-
-    border: 2px solid black;
-    border-radius: 10px;
-}
 
 #instructions {
     font-family: rubik-lighter;
