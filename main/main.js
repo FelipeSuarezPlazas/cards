@@ -121,7 +121,22 @@ let instructions = {
 
 let cards = {
   container: document.getElementById('cards'),
-  values: '🐔 🦓 🐸 🐶 🐷 🐼 🦁 🐮 🐵 🐭 🐱 🐍'.split(' '),
+  dictionary: {
+    '🐔': 'chicken',
+    '🦓': 'zebra',
+    '🐸': 'frog',
+    '🐶': 'dog',
+    '🐷': 'pig',
+    '🦁': 'lion',
+    '🐼': 'panda bear',
+    '🐮': 'cow',
+    '🐵': 'monkey',
+    '🐭': 'mouse',
+    '🐱': 'cat',
+    '🐍': 'snake',
+
+  },
+  values: [],
   selected_values: [],
   //colors: ['aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet', 'aqua', 'plum', 'aquamarine', 'salmon', 'lawngreen', 'blueviolet'],
   colors: ['#ff956d', '#d7ff6d', '#956dff', '#6dd7ff', '#6dff95', '#ff8be0'],
@@ -133,6 +148,7 @@ let cards = {
 
   cards: [],
   card_contents: [],
+  card_words: [],
   covers: [],
   covers_by_id: {},
   cards_by_cover_ids: {},
@@ -149,6 +165,8 @@ let cards = {
   wrong_selection_time: '400', // miliseconds.
 
   setup: function() { // here all the cards and the covers are created.
+    this.values = Object.keys(this.dictionary);
+
     for (let i=0; i<this.amount; i++) {
       const WRAPPER = document.createElement('div');
       WRAPPER.setAttribute('class', 'wrapper');
@@ -158,9 +176,17 @@ let cards = {
       CARD.setAttribute('class', 'card');
       WRAPPER.appendChild(CARD);
 
-      const CARD_CONTENT = document.createTextNode('1');
+      const CARD_CONTENT = document.createElement('p');
+      CARD_CONTENT.setAttribute('class', 'card-emoji');
       CARD.appendChild(CARD_CONTENT);
       this.card_contents.push(CARD_CONTENT);
+
+      const CARD_WORD = document.createElement('p');
+      CARD_WORD.setAttribute('class', 'card-word');
+      CARD_WORD.innerHTML = 'MONKEY';
+      CARD.appendChild(CARD_WORD);
+      this.card_words.push(CARD_WORD);
+
 
       const COVER = document.createElement('div');
       COVER.addEventListener('click', this.__handleCoverClick.bind(this));
@@ -208,6 +234,9 @@ let cards = {
       
       const CARD_CONTENT = this.card_contents[i];
       CARD_CONTENT.textContent = CARD_VALUE;
+
+      const CARD_WORD = this.card_words[i]
+      CARD_WORD.innerHTML = this.dictionary[CARD_VALUE].toUpperCase();
       console.log(CARD_VALUE, 'VALUE OF THE CARD');
 
       
